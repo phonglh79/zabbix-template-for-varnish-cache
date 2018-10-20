@@ -1,8 +1,8 @@
-**This is a Zabbix template + discovery & sender script useful to monitor Varnish Cache >= 4.0 instances:**
+**This is a Zabbix template + discovery & sender script useful to monitor Varnish Cache (master) instances**. Beware this project contains multiples branches (master, 4.1, etc.). Please, select the branch to be used depending on your Varnish Cache version (Varnish trunk → master, Varnish 4.1.x → 4.1, etc.):
 
 1. Copy ``zabbix-varnish-cache.py`` to ``/usr/local/bin/``.
 
-2. If using Varnish Cache >= 4.1, add ``zabbix`` user to the ``varnish`` group::
+2. Add ``zabbix`` user to the ``varnish`` group::
 
     $ sudo usermod -a --groups varnish zabbix
 
@@ -16,7 +16,7 @@
 
     * * * * * /usr/local/bin/zabbix-varnish-cache.py -i '' send -c /etc/zabbix/zabbix_agentd.conf -s dev > /dev/null 2>&1
 
-5. Import the Varnish Cache template (``template-app-varnish.xml`` file).
+6. Import the Varnish Cache template (``template-app-varnish.xml`` file).
 
 7. Add an existing / new host to the ``Varnish Cache servers`` group and link it to the ``Template App Varnish Cache`` template. Beware you must set a value for the ``{$VARNISH_CACHE_LOCATIONS}`` macro (comma-delimited list of Varnish Cache instance names). Usually you should leave its value blank when running a single Varnish Cache instance per server.
 

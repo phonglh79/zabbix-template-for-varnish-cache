@@ -3,7 +3,7 @@
 
 '''
 :url: https://github.com/allenta/zabbix-template-for-varnish-cache
-:copyright: (c) 2015-2016 by Allenta Consulting S.L. <info@allenta.com>.
+:copyright: (c) 2015-2018 by Allenta Consulting S.L. <info@allenta.com>.
 :license: BSD, see LICENSE.txt for more details.
 '''
 
@@ -17,87 +17,144 @@ from argparse import ArgumentParser
 
 ITEMS = re.compile(
     r'^(?:'
+    # Uptime.
     r'MAIN\.uptime|'
-    r'MAIN\.sess_conn|'
-    r'MAIN\.sess_drop|'
-    r'MAIN\.sess_fail|'
+    r'MGT\.uptime|'
+    # Client requests: rate.
+    r'MAIN\.client_req|'
+    # Client requests: activity.
+    r'MAIN\.req_dropped|'
     r'MAIN\.client_req_400|'
     r'MAIN\.client_req_417|'
-    r'MAIN\.client_req|'
+    # Client requests: bytes received.
+    r'MAIN\.s_pipe_in|'
+    r'MAIN\.s_pipe_hdrbytes|'
+    r'MAIN\.s_req_hdrbytes|'
+    r'MAIN\.s_req_bodybytes|'
+    # Client requests: bytes sent.
+    r'MAIN\.s_pipe_out|'
+    r'MAIN\.s_resp_bodybytes|'
+    r'MAIN\.s_resp_hdrbytes|'
+    # Client requests: busy.
+    r'MAIN\.busy_sleep|'
+    r'MAIN\.busy_wakeup|'
+    r'MAIN\.busy_killed|'
+    # Client requests: passes seen.
+    r'MAIN\.s_pass|'
+    # Client requests: synthetic responses made.
+    r'MAIN\.s_synth|'
+    # Client sessions: rate.
+    r'MAIN\.sess_conn|'
+    # Client sessions: activity.
+    r'MAIN\.s_sess|'
+    r'MAIN\.sess_closed|'
+    r'MAIN\.sess_closed_err|'
+    r'MAIN\.sess_drop|'
+    r'MAIN\.sess_dropped|'
+    r'MAIN\.sess_fail|'
+    r'MAIN\.sess_queued|'
+    r'MAIN\.sess_readahead|'
+    # Client sessions: failures.
+    r'MAIN\.sess_fail_econnaborted|'
+    r'MAIN\.sess_fail_eintr|'
+    r'MAIN\.sess_fail_emfile|'
+    r'MAIN\.sess_fail_ebadf|'
+    r'MAIN\.sess_fail_enomem|'
+    r'MAIN\.sess_fail_other|'
+    # Client sessions: waiting for threads.
+    r'MAIN\.thread_queue_len|'
+    # Client sessions: pipes seen.
+    r'MAIN\.s_pipe|'
+    # Cache.
     r'MAIN\.cache_hit|'
+    r'MAIN\.cache_hit_grace|'
     r'MAIN\.cache_hitpass|'
+    r'MAIN\.cache_hitmiss|'
     r'MAIN\.cache_miss|'
+    # HTTP header overflows.
+    r'MAIN\.losthdr|'
+    # Threads: number.
+    r'MAIN\.threads|'
+    # Threads: activity.
+    r'MAIN\.threads_created|'
+    r'MAIN\.threads_failed|'
+    r'MAIN\.threads_limited|'
+    r'MAIN\.threads_destroyed|'
+    # ESI: activity.
+    r'MAIN\.esi_warnings|'
+    r'MAIN\.esi_errors|'
+    # Gzip: activity.
+    r'MAIN\.n_gzip|'
+    r'MAIN\.n_gunzip|'
+    r'MAIN\.n_test_gunzip|'
+    # Objects: stored.
+    r'MAIN\.n_object|'
+    r'MAIN\.n_objecthead|'
+    r'MAIN\.n_objectcore|'
+    # Objects: removals.
+    r'MAIN\.n_expired|'
+    r'MAIN\.n_lru_nuked|'
+    r'MAIN\.n_obj_purged|'
+    r'MAIN\.bans_obj_killed|'
+    r'MAIN\.bans_lurker_obj_killed|'
+    r'MAIN\.bans_lurker_obj_killed_cutoff|'
+    # Nuke_limit overflows.
+    r'MAIN\.n_lru_limited|'
+    # Objects: purges.
+    r'MAIN\.n_purges|'
+    # Objects: bans.
+    r'MAIN\.bans|'
+    # Backends: connections rate.
     r'MAIN\.backend_conn|'
-    r'MAIN\.backend_unhealthy|'
-    r'MAIN\.backend_busy|'
-    r'MAIN\.backend_fail|'
-    r'MAIN\.backend_reuse|'
+    # Backends: connections activity.
     r'MAIN\.backend_recycle|'
+    r'MAIN\.backend_reuse|'
     r'MAIN\.backend_retry|'
+    r'MAIN\.backend_busy|'
+    r'MAIN\.backend_unhealthy|'
+    r'MAIN\.backend_fail|'
+    # Backends: request rate.
+    r'MAIN\.backend_req|'
+    # Backends: fetches activity.
+    r'MAIN\.s_fetch|'
     r'MAIN\.fetch_head|'
     r'MAIN\.fetch_length|'
     r'MAIN\.fetch_chunked|'
     r'MAIN\.fetch_eof|'
-    r'MAIN\.fetch_bad|'
     r'MAIN\.fetch_none|'
     r'MAIN\.fetch_1xx|'
     r'MAIN\.fetch_204|'
     r'MAIN\.fetch_304|'
+    r'MAIN\.fetch_bad|'
     r'MAIN\.fetch_failed|'
     r'MAIN\.fetch_no_thread|'
-    r'MAIN\.threads|'
-    r'MAIN\.threads_limited|'
-    r'MAIN\.threads_created|'
-    r'MAIN\.threads_destroyed|'
-    r'MAIN\.threads_failed|'
-    r'MAIN\.thread_queue_len|'
-    r'MAIN\.busy_sleep|'
-    r'MAIN\.busy_wakeup|'
-    r'MAIN\.busy_killed|'
-    r'MAIN\.sess_queued|'
-    r'MAIN\.sess_dropped|'
-    r'MAIN\.n_object|'
-    r'MAIN\.n_objectcore|'
-    r'MAIN\.n_objecthead|'
+    # Backends: number.
     r'MAIN\.n_backend|'
-    r'MAIN\.n_expired|'
-    r'MAIN\.n_lru_nuked|'
-    r'MAIN\.bans_obj_killed|'
-    r'MAIN\.bans_lurker_obj_killed|'
-    r'MAIN\.losthdr|'
-    r'MAIN\.s_sess|'
-    r'MAIN\.s_req|'
-    r'MAIN\.s_pipe|'
-    r'MAIN\.s_pass|'
-    r'MAIN\.s_fetch|'
-    r'MAIN\.s_synth|'
-    r'MAIN\.s_req_hdrbytes|'
-    r'MAIN\.s_req_bodybytes|'
-    r'MAIN\.s_resp_hdrbytes|'
-    r'MAIN\.s_resp_bodybytes|'
-    r'MAIN\.s_pipe_hdrbytes|'
-    r'MAIN\.s_pipe_in|'
-    r'MAIN\.s_pipe_out|'
-    r'MAIN\.sess_closed|'
-    r'MAIN\.sess_closed_err|'
-    r'MAIN\.sess_readahead|'
-    r'MAIN\.backend_req|'
-    r'MAIN\.bans|'
-    r'MAIN\.n_purges|'
-    r'MAIN\.n_obj_purged|'
-    r'MAIN\.esi_errors|'
-    r'MAIN\.esi_warnings|'
-    r'MAIN\.n_gzip|'
-    r'MAIN\.n_gunzip|'
-    r'MGT\.uptime|'
+    # VCL failures.
+    r'MAIN\.sc_vcl_failure|'
+    r'MAIN\.vcl_fail|'
+    # Storages[...]
+    #   - Bytes outstanding vs. available: g_space, g_bytes.
+    #   - Allocator failures: c_fail.
+    #   - Spare nodes available: g_sparenode.
     r'(?:MSE|SMA|SMF)\..+\.(?:c_fail|c_failed|g_bytes|g_space|g_sparenode)|'
-    r'VBE\..+\.(?:healthy|happy|bereq_hdrbytes|bereq_bodybytes|beresp_hdrbytes|beresp_bodybytes|pipe_hdrbytes|pipe_out|pipe_in|conn|req)'
+    # Backends[...]
+    #   - Healthiness: healthy, happy.
+    #   - Requests sent to backend: req.
+    #   - Concurrent connections to backend: conn.
+    #   - Fetches not attempted: unhealthy, busy, fail, helddown.
+    #   - Failed connection attempts: fail_eacces, fail_eaddrnotavail, fail_econnrefused, fail_enetunreach, fail_etimedout, fail_other.
+    #   - Bytes sent to backend: pipe_out, pipe_hdrbytes, bereq_hdrbytes, bereq_bodybytes.
+    #   - Bytes received from backend: pipe_in, beresp_hdrbytes, beresp_bodybytes.
+    #   -
+    r'VBE\..+\.(?:healthy|happy|bereq_hdrbytes|bereq_bodybytes|beresp_hdrbytes|beresp_bodybytes|pipe_hdrbytes|pipe_out|pipe_in|conn|req|unhealthy|busy|fail|helddown|fail_eacces|fail_eaddrnotavail|fail_econnrefused|fail_enetunreach|fail_etimedout|fail_other)'
     r')$')
 
 REWRITES = [
     (re.compile(r'^((?:MSE|SMA|SMF)\..+)$'), r'STG.\1'),
     (re.compile(r'^(STG\.(?:MSE|SMA|SMF)\.[^\.]+\.c_fail)ed$'), r'\1'),
     (re.compile(r'^VBE\.(?:[^\.\(]+)((?:\.[^\.]*(?:\([^\)]*\))?)+\.[^\.]+)$'), r'VBE\1'),
+    (re.compile(r'^(VBE\.goto)\.[0-9a-f]+\.(.+)$'), r'\1.\2'),
 ]
 
 SUBJECTS = {
@@ -206,25 +263,23 @@ class Rewriter(object):
         return result
 
 
-def stats(name):
+def stats(instance):
     # Fetch backends through varnishadm.
     backends = {}
-    rc, output = execute('varnishadm %(name)s backend.list' % {
-        'name': '-n "%s"' % name,
+    rc, output = execute('varnishadm %(name)s backend.list -j' % {
+        'name': '-n "%s"' % instance,
     })
     if rc == 0:
-        for i, line in enumerate(output.split('\n')):
-            if i > 0:
-                items = line.split()
-                if len(items) > 3:
-                    backends[items[0]] = (items[2] == 'Healthy')
+        for name, backend in json.loads(output)[3].items():
+            if backend['type'] == 'backend':
+                backends[name] = (backend['probe_message'] == 'healthy')
     else:
         backends = None
         sys.stderr.write(output)
 
     # Fetch stats through varnishstat & filter / normalize output.
     rc, output = execute('varnishstat -1 -j %(name)s' % {
-        'name': '-n "%s"' % name,
+        'name': '-n "%s"' % instance,
     })
     if rc == 0:
         rewriter = Rewriter(REWRITES)
@@ -237,8 +292,6 @@ def stats(name):
                        any(name.startswith('VBE.' + backend + '.') for backend in backends.keys()):
                         key = rewriter.rewrite(name)
                         value = {
-                            'type': item.get('type'),
-                            'ident': item.get('ident'),
                             'flag': item.get('flag'),
                             'description': item.get('description'),
                             'value': item['value'],
@@ -254,8 +307,6 @@ def stats(name):
             for backend, healthy in backends.items():
                 key = rewriter.rewrite('VBE.' + backend + '.healthy')
                 result[key] = {
-                    'type': 'VBE',
-                    'ident': backend,
                     'flag': 'g',
                     'description': '',
                     'value': int(healthy),
